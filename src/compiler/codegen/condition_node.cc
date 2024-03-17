@@ -34,18 +34,56 @@ std::string GetFabsCFunc(std::string const& threshold_type) {
   }
 }
 
+std::string float_to_bin(float number) {
+    std::stringstream ss;
+    ss << "0x" << std::hex << std::setw(8) << std::setfill('0') << *(reinterpret_cast<unsigned int*>(&number));
+    return ss.str();
+}
+
+std::string double_to_bin(double number) {
+    std::stringstream ss;
+    ss << "0x" << std::hex << std::setw(18) << std::setfill('0') << *(reinterpret_cast<unsigned long long*>(&number));
+    return ss.str();
+}
+
+
+
 inline std::string ExtractNumericalCondition(ast::NumericalConditionNode const* node) {
   std::string const threshold_type = codegen::GetThresholdCType(node);
   std::string result;
   if (node->quantized_threshold_) {  // Quantized threshold
-    std::string lhs
-        = fmt::format("data[{split_index}].qvalue", "split_index"_a = node->split_index_);
-    result = fmt::format("{lhs} {opname} {threshold}", "lhs"_a = lhs,
-        "opname"_a = treelite::OperatorToString(node->op_),
-        "threshold"_a = *node->quantized_threshold_);
+    std::string lhs = fmt::format("data[{split_index}].qvalue", "split_index"_a = node->split_index_);
+    result = fmt::format("{lhs} {opname} {threshold}", "lhs"_a = lhs, 
+    "opname"_a = treelite::OperatorToString(node->op_), "threshold"_a = *node->quantized_threshold_);
+  } else if (1) { // Flinted threshold
+    std::string intLogicType = (threshold_type == "float") ? "int" : "long";
+
+    if (threshold_type == "float") {
+
+      std::string negatstring = "";
+      float splitval = std::get<float>(node->threshold_);
+      std::string op = "<=";
+      if (splitval < 0) {
+          splitval = -splitval;
+          //std::string aa=(threshold_type == "float") ? "31" : "63";
+          negatstring = " ^ (0b1 << 31)";
+          op = ">";
+      }
+      
+      std::string split_val_bin = float_to_bin(splitval);
+      result = "(*( (("+intLogicType+"*)(data)) + "+std::to_string(node->split_index_)+" )"
+      +negatstring+")"+op+"(("+intLogicType+")("+split_val_bin+"))";
+      }
+    else if (threshold_type == "double") {
+      result = "1";
+    }
+    else  { // Invalid threhshold type
+      result = "2";
+    }
+
   } else {
-    result = std::visit(
-        [&](auto&& threshold) -> std::string {
+    
+    result = std::visit([&](auto&& threshold) -> std::string {
           using ThresholdT = std::remove_const_t<std::remove_reference_t<decltype(threshold)>>;
           if (std::isinf(threshold)) {  // infinite threshold
             // According to IEEE 754, the result of comparison [lhs] < infinity
@@ -63,6 +101,7 @@ inline std::string ExtractNumericalCondition(ast::NumericalConditionNode const* 
           }
         },
         node->threshold_);
+
   }
   return result;
 }
@@ -167,3 +206,32 @@ void HandleConditionNode(ast::ConditionNode const* node, CodeCollection& gencode
 }
 
 }  // namespace tl2cgen::compiler::detail::codegen
+
+/*
+    result = std::visit(
+        [&](auto&& threshold) -> std::string {
+          using ThresholdT = std::remove_const_t<std::remove_reference_t<decltype(threshold)>>;
+          if (std::isinf(threshold)) {  // infinite threshold
+            // According to IEEE 754, the result of comparison [lhs] < infinity
+            // must be identical for all finite [lhs]. Same goes for operator >.
+            return (tl2cgen::detail::CompareWithOp(static_cast<ThresholdT>(0), node->op_, threshold)
+                        ? "1"
+                        : "0");
+          } else {  // Finite threshold
+            std::string lhs
+                = fmt::format("data[{split_index}].fvalue", "split_index"_a = node->split_index_);
+            return fmt::format("{lhs} {opname} ({threshold_type}){threshold}", "lhs"_a = lhs,
+                "opname"_a = treelite::OperatorToString(node->op_),
+                "threshold_type"_a = threshold_type,
+                "threshold"_a = codegen::ToStringHighPrecision(ThresholdT{threshold}));
+          }
+        },
+        node->threshold_);
+        */  
+
+
+       /*
+            float splitval = std::visit([](auto&& arg) -> float {
+              return static_cast<float>(arg);
+            }, node->threshold_);
+            */
