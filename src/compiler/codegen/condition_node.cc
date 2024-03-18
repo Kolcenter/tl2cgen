@@ -207,31 +207,3 @@ void HandleConditionNode(ast::ConditionNode const* node, CodeCollection& gencode
 
 }  // namespace tl2cgen::compiler::detail::codegen
 
-/*
-    result = std::visit(
-        [&](auto&& threshold) -> std::string {
-          using ThresholdT = std::remove_const_t<std::remove_reference_t<decltype(threshold)>>;
-          if (std::isinf(threshold)) {  // infinite threshold
-            // According to IEEE 754, the result of comparison [lhs] < infinity
-            // must be identical for all finite [lhs]. Same goes for operator >.
-            return (tl2cgen::detail::CompareWithOp(static_cast<ThresholdT>(0), node->op_, threshold)
-                        ? "1"
-                        : "0");
-          } else {  // Finite threshold
-            std::string lhs
-                = fmt::format("data[{split_index}].fvalue", "split_index"_a = node->split_index_);
-            return fmt::format("{lhs} {opname} ({threshold_type}){threshold}", "lhs"_a = lhs,
-                "opname"_a = treelite::OperatorToString(node->op_),
-                "threshold_type"_a = threshold_type,
-                "threshold"_a = codegen::ToStringHighPrecision(ThresholdT{threshold}));
-          }
-        },
-        node->threshold_);
-        */  
-
-
-       /*
-            float splitval = std::visit([](auto&& arg) -> float {
-              return static_cast<float>(arg);
-            }, node->threshold_);
-            */
