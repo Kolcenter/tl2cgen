@@ -17,9 +17,13 @@
 #include <fstream>
 #include <string>
 
+int flint=0;
+
 namespace {
 
 namespace detail = tl2cgen::compiler::detail;
+
+
 
 // Lower the tree model to AST using the AST builder, and then return the builder object.
 detail::ast::ASTBuilder LowerToAST(
@@ -42,6 +46,9 @@ detail::ast::ASTBuilder LowerToAST(
   if (param.quantize > 0) {
     builder.GenerateIsCategoricalArray();
     builder.QuantizeThresholds();
+  }
+  if (param.flint > 0) {
+    flint=1;
   }
   return builder;
 }

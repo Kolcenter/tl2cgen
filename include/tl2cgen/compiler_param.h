@@ -26,6 +26,8 @@ struct CompilerParam {
   std::string annotate_in{"NULL"};
   /*! \brief Whether to quantize threshold points (0: no, >0: yes) */
   int quantize{0};
+  /*! \brief Whether to flint threshold points (0: no, >0: yes) */
+  int flint{0};
   /*! \brief Option to enable parallel compilation;
              if set to nonzero, the trees will be evely distributed
              into ``[parallel_comp]`` files. Set this option to improve
