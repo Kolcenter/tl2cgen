@@ -16,7 +16,7 @@
 #include <cstdint>
 #include <string>
 
-extern int flint;
+
 
 using namespace fmt::literals;
 
@@ -59,8 +59,7 @@ inline std::string ExtractNumericalCondition(ast::NumericalConditionNode const* 
     std::string lhs = fmt::format("data[{split_index}].qvalue", "split_index"_a = node->split_index_);
     result = fmt::format("{lhs} {opname} {threshold}", "lhs"_a = lhs, 
     "opname"_a = treelite::OperatorToString(node->op_), "threshold"_a = *node->quantized_threshold_);
-  } else if (flint) { // Flinted threshold
-
+  } else if (node->flint_) { // Flinted threshold
 
     if (threshold_type == "float") {
 

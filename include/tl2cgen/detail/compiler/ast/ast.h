@@ -94,15 +94,17 @@ class NumericalConditionNode : public ConditionNode {
  public:
   using ThresholdVariantT = std::variant<float, double>;
   NumericalConditionNode(std::uint32_t split_index, bool default_left, treelite::Operator op,
-      ThresholdVariantT threshold, std::optional<int> quantized_threshold)
+      ThresholdVariantT threshold, std::optional<int> quantized_threshold, bool flint)
       : ConditionNode(split_index, default_left),
         op_(op),
         threshold_(threshold),
         quantized_threshold_(quantized_threshold),
+        flint_(flint),
         zero_quantized_(-1) {}
   treelite::Operator op_;
   ThresholdVariantT threshold_;
   std::optional<int> quantized_threshold_;
+  bool flint_;
   int zero_quantized_;  // quantized value of 0.0f (useful when convert_missing_to_zero is set)
   std::string GetDump() const override;
 };

@@ -17,7 +17,7 @@
 #include <fstream>
 #include <string>
 
-int flint=0;
+
 
 namespace {
 
@@ -30,7 +30,7 @@ detail::ast::ASTBuilder LowerToAST(
     treelite::Model const& model, tl2cgen::compiler::CompilerParam const& param) {
   /* 1. Lower the tree ensemble model into Abstract Syntax Tree (AST) */
   detail::ast::ASTBuilder builder;
-  builder.BuildAST(model);
+  builder.BuildAST(model, param.flint);
 
   /* 2. Apply optimization passes to AST */
   if (param.annotate_in != "NULL") {
@@ -46,9 +46,6 @@ detail::ast::ASTBuilder LowerToAST(
   if (param.quantize > 0) {
     builder.GenerateIsCategoricalArray();
     builder.QuantizeThresholds();
-  }
-  if (param.flint > 0) {
-    flint=1;
   }
   return builder;
 }
